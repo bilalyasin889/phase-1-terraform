@@ -72,19 +72,11 @@ locals {
   nacl_rules_internal_inbound = [
     {
       cidr_block  = local.vpc_cidr
-      from_port   = 80
-      to_port     = 80
+      from_port   = 5000
+      to_port     = 5000
       protocol    = "tcp"
       rule_action = "allow"
       rule_number = 100
-    },
-    {
-      cidr_block  = local.vpc_cidr
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      rule_action = "allow"
-      rule_number = 110
     }
   ]
 
@@ -115,7 +107,7 @@ locals {
 }
 
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+  source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.6.0"
 
   name = "${local.app_name}-vpc"
@@ -156,6 +148,80 @@ module "vpc" {
   manage_default_security_group = false
   manage_default_network_acl    = false
   manage_default_route_table    = false
+
+  tags = local.app_registry_tag
+}
+
+# Security Groups
+module "alb_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.3.1"
+
+  name        = "alb-sg"
+  description = "Security group for ALB with https ports publicly open"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["https-443-tcp"]
+
+  tags = local.app_registry_tag
+}
+
+module "app_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.3.1"
+
+  name        = "app-sg"
+  description = "Security group for the application server with the 5000 port open to the ALB SG"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_with_source_security_group_id = [
+    {
+      from_port                = 5000
+      to_port                  = 5000
+      protocol                 = "tcp"
+      description              = "Allow traffic from ALB SG to app running on port 5000"
+      source_security_group_id = module.alb_sg.security_group_id
+    }
+  ]
+
+  egress_with_source_security_group_id = [
+    {
+      rule                     = "mysql-tcp"
+      description              = "Allow traffic from app to database SG"
+      source_security_group_id = module.db_sg.security_group_id
+    }
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      description = "Allow HTTPS for pip updates and API calls"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  tags = local.app_registry_tag
+}
+
+module "db_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.3.1"
+
+  name        = "db-sg"
+  description = "Security group for the database with sql port open to the App SG"
+  vpc_id      = module.vpc.vpc_id
+
+  computed_ingress_with_source_security_group_id = [
+    {
+      rule                     = "mysql-tcp"
+      source_security_group_id = module.app_sg.security_group_id
+      description              = "Allow traffic from App SG to RDS"
+    }
+  ]
+  number_of_computed_ingress_with_source_security_group_id = 1
 
   tags = local.app_registry_tag
 }
