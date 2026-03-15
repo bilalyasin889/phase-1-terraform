@@ -72,8 +72,8 @@ locals {
   nacl_rules_internal_inbound = [
     {
       cidr_block  = local.vpc_cidr
-      from_port   = 5000
-      to_port     = 5000
+      from_port   = 80
+      to_port     = 80
       protocol    = "tcp"
       rule_action = "allow"
       rule_number = 100
@@ -158,11 +158,11 @@ module "alb_sg" {
   version = "~> 5.3.1"
 
   name        = "alb-sg"
-  description = "Security group for ALB with https ports publicly open"
+  description = "Security group for ALB with http and https ports publicly open"
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["https-443-tcp"]
+  ingress_rules       = ["http-80-tcp", "https-443-tcp"]
 
   tags = local.app_registry_tag
 }
@@ -172,15 +172,15 @@ module "app_sg" {
   version = "~> 5.3.1"
 
   name        = "app-sg"
-  description = "Security group for the application server with the 5000 port open to the ALB SG"
+  description = "Security group for the application server with the 80 port open to the ALB SG"
   vpc_id      = module.vpc.vpc_id
 
   ingress_with_source_security_group_id = [
     {
-      from_port                = 5000
-      to_port                  = 5000
+      from_port                = 80
+      to_port                  = 80
       protocol                 = "tcp"
-      description              = "Allow traffic from ALB SG to app running on port 5000"
+      description              = "Allow traffic from ALB SG to app running on port 80"
       source_security_group_id = module.alb_sg.security_group_id
     }
   ]
