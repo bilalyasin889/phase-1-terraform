@@ -7,4 +7,8 @@ locals {
   }
 
   app_name = "phase-1"
+
+  base_domain = "bilalyasin.com"
+  app_domain = "phase-1.${local.base_domain}"
+  api_domain = "api.${local.app_domain}"
 }
