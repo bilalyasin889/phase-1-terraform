@@ -6,12 +6,12 @@ module "app_acm" {
   source  = "terraform-aws-modules/acm/aws"
   version = "~> 6.3.0"
 
-  domain_name  = local.app_domain
+  domain_name = local.app_domain
   subject_alternative_names = [
     local.api_domain
   ]
 
-  zone_id      = data.aws_route53_zone.main_zone.zone_id
+  zone_id = data.aws_route53_zone.main_zone.zone_id
 
   validation_method = "DNS"
 
