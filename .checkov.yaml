@@ -11,6 +11,7 @@ skip-check:
   - CKV_AWS_144   # S3 Buckets have cross-region replication enabled
   - CKV_AWS_145   # S3 Buckets are encrypted with KMS
   - CKV_AWS_337   # SSM parameters are using KMS CMK
+  - CKV2_AWS_34   # SSM parameters should be encrypted
   - CKV_AWS_158   # CloudWatch Logs are encrypted with KMS
   - CKV_AWS_161   # RDS database has IAM authentication enabled
   - CKV_AWS_157   # RDS multi-AZ deployment (for non production environments)

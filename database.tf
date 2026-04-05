@@ -76,7 +76,7 @@ module "db" {
 }
 
 locals {
-  ssm_db_config = "/${local.environment}/${local.app_name}/db_config"
+  ssm_db_config = "/${local.ssm_param_store_prefix}/db_config"
 }
 
 resource "aws_ssm_parameter" "db_config" {

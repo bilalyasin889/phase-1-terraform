@@ -39,3 +39,14 @@ module "s3_alb_logs" {
 
   tags = local.app_registry_tag
 }
+
+locals {
+  ssm_s3_config = "/${local.ssm_param_store_prefix}/s3_config"
+}
+
+resource "aws_ssm_parameter" "s3_config" {
+  name = local.ssm_s3_config
+  type = "String"
+
+  value = module.s3_assets.s3_bucket_id
+}

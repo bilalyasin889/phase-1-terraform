@@ -16,4 +16,6 @@ locals {
 
   db_name     = "${local.app_name}-dev-db"
   db_username = "phase1_user"
+
+  ssm_param_store_prefix = "/${local.environment}/${local.app_name}"
 }
