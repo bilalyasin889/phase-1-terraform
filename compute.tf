@@ -60,4 +60,6 @@ module "asg" {
   }
 
   autoscaling_group_tags = local.app_registry_tag
+
+  tags = local.app_registry_tag
 }

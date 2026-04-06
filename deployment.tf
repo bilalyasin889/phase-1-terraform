@@ -14,6 +14,8 @@ data "aws_iam_policy_document" "codedeploy_assume_role" {
 resource "aws_iam_role" "codedeploy_service_role" {
   name               = "${local.app_name}-codedeploy-service-role"
   assume_role_policy = data.aws_iam_policy_document.codedeploy_assume_role.json
+
+  tags = local.app_registry_tag
 }
 
 resource "aws_iam_role_policy_attachment" "codedeploy_role_attachment" {
@@ -23,6 +25,8 @@ resource "aws_iam_role_policy_attachment" "codedeploy_role_attachment" {
 
 resource "aws_codedeploy_app" "this" {
   name = "${local.app_name}-deploy"
+
+  tags = local.app_registry_tag
 }
 
 resource "aws_codedeploy_deployment_group" "this" {
@@ -49,4 +53,6 @@ resource "aws_codedeploy_deployment_group" "this" {
   }
 
   deployment_config_name = "CodeDeployDefault.OneAtATime"
+
+  tags = local.app_registry_tag
 }
