@@ -1,3 +1,25 @@
+module "s3_write_policy" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version = "~> 5.0"
+
+  name        = "AppS3PutObjectPolicy"
+  path        = "/"
+  description = "Allows app to generate presigned URLs"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = ["s3:PutObject"]
+        Effect   = "Allow"
+        Resource = "${module.s3_assets.s3_bucket_arn}/*"
+      }
+    ]
+  })
+
+  tags = local.app_registry_tag
+}
+
 module "asg" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "~> 9.2.0"
@@ -49,6 +71,7 @@ module "asg" {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
     CloudWatchAgentServerPolicy  = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
     AmazonS3ReadOnlyAccess       = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    S3PutObjectPolicy            = module.s3_write_policy.arn
   }
 
   instance_refresh = {
