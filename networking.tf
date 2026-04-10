@@ -115,6 +115,9 @@ module "vpc" {
 
   create_igw = true
 
+  enable_nat_gateway     = true
+  one_nat_gateway_per_az = true
+
   azs = data.aws_availability_zones.azs.names
 
   # Layer 1 :: Public
@@ -222,6 +225,24 @@ module "db_sg" {
     }
   ]
   number_of_computed_ingress_with_source_security_group_id = 1
+
+  tags = local.app_registry_tag
+}
+
+module "endpoints" {
+  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version = "~> 6.6.0"
+
+  vpc_id             = module.vpc.vpc_id
+  security_group_ids = [module.app_sg.security_group_id]
+  subnet_ids         = module.vpc.private_subnets
+
+  endpoints = {
+    s3 = {
+      service = "s3"
+      tags    = { Name = "s3-vpc-endpoint" }
+    }
+  }
 
   tags = local.app_registry_tag
 }
