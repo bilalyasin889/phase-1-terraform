@@ -3,6 +3,7 @@ skip-check:
   - CKV2_AWS_12   # Default Security Group restricting all traffic
   - CKV_AWS_260   # Security Group allows ingress from 0.0.0.0/0 to port 80
   - CKV2_AWS_5    # Security Groups are attached to another resource
+  - CKV2_AWS_19   # EIP attached to EC2 instance
   - CKV_AWS_378   # ALB doesn't use HTTP protocol
   - CKV2_AWS_28   # ALB has WAF enabled
   - CKV2_AWS_62   # S3 Buckets have event notifications enabled
