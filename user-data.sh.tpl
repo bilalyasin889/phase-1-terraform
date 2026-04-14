@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "ENVIRONMENT=${environment}" > /etc/environment.local
+chmod 644 /etc/environment.local
+
 # 1. Install System Dependencies
 # ruby-full/wget/jq are for AWS Agents; python3-venv is the tool for devs
 apt-get update -y

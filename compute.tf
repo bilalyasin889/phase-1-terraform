@@ -58,6 +58,7 @@ module "asg" {
   # User Data
   user_data = base64encode(templatefile("${path.module}/user-data.sh.tpl", {
     log_group_name = module.app_log_group.cloudwatch_log_group_name
+    environment    = local.environment
   }))
 
   # IAM role & instance profile
