@@ -56,3 +56,86 @@ resource "aws_codedeploy_deployment_group" "this" {
 
   tags = local.app_registry_tag
 }
+
+module "artifact_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 5.10.0"
+
+  bucket = "${local.app_name}-${local.environment}-artifacts"
+
+  versioning = {
+    enabled = true
+  }
+
+  tags = local.app_registry_tag
+}
+
+module "github_oidc_provider" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-provider"
+  version = "~> 5.0"
+
+  tags = local.app_registry_tag
+}
+
+module "github_oidc_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
+  version = "~> 5.0"
+
+  name = "github-actions-deploy-role"
+
+  subjects = [
+    "bilalyasin889/data-service:*",
+    "bilalyasin889/storage-service:*",
+    "bilalyasin889/nginx-config:*"
+  ]
+
+  policies = {
+    CodeDeployAccess = aws_iam_policy.github_deploy_policy.arn
+  }
+
+  tags = local.app_registry_tag
+}
+
+resource "aws_iam_policy" "github_deploy_policy" {
+  name        = "GitHubActionsDeployPolicy"
+  description = "Allows GH Actions to upload to S3 and trigger CodeDeploy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetBucketLocation",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "${module.artifact_bucket.s3_bucket_arn}/*",
+          module.artifact_bucket.s3_bucket_arn
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "codedeploy:CreateDeployment",
+          "codedeploy:GetDeployment",
+          "codedeploy:GetDeploymentConfig",
+          "codedeploy:RegisterApplicationRevision",
+          "codedeploy:GetApplicationRevision"
+        ]
+        Resource = ["*"]
+      }
+    ]
+  })
+
+  tags = local.app_registry_tag
+}
+
+output "artifact_bucket_name" {
+  value = module.artifact_bucket.s3_bucket_id
+}
+
+output "role_arn" {
+  value = module.github_oidc_role.arn
+}
