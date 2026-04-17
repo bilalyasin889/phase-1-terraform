@@ -24,7 +24,7 @@ resource "aws_iam_role_policy_attachment" "codedeploy_role_attachment" {
 }
 
 resource "aws_codedeploy_app" "this" {
-  name = "${local.app_name}-deploy"
+  name = "${local.app_name}-${local.environment}"
 
   tags = local.app_registry_tag
 }
