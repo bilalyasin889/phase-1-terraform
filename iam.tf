@@ -18,6 +18,8 @@ resource "aws_iam_policy" "s3_artifact_read" {
       ]
     }]
   })
+
+  tags = local.app_registry_tag
 }
 
 # Access to the Artifact Bucket (Upload for GitHub Actions)
@@ -88,6 +90,8 @@ resource "aws_iam_policy" "ssm_db_config_read" {
       }
     ]
   })
+
+  tags = local.app_registry_tag
 }
 
 # S3 Configuration (Plain text ID)
@@ -103,6 +107,8 @@ resource "aws_iam_policy" "ssm_s3_config_read" {
       Resource = [aws_ssm_parameter.s3_config.arn]
     }]
   })
+
+  tags = local.app_registry_tag
 }
 
 # ==========================================
@@ -126,6 +132,8 @@ resource "aws_iam_policy" "lambda_logging" {
       }
     ]
   })
+
+  tags = local.app_registry_tag
 }
 
 # ==========================================
@@ -171,6 +179,8 @@ resource "aws_iam_policy" "migration_lambda_mgmt" {
       Resource = [module.lambda_migration_engine.lambda_function_arn]
     }]
   })
+
+  tags = local.app_registry_tag
 }
 
 # Lambda Execution (Triggering the Migration Engine)
@@ -186,6 +196,8 @@ resource "aws_iam_policy" "migration_lambda_invoke" {
       Resource = [module.lambda_migration_engine.lambda_function_arn]
     }]
   })
+
+  tags = local.app_registry_tag
 }
 
 # ECR Management (Pushing images)
