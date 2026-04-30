@@ -53,8 +53,6 @@ resource "aws_ssm_parameter" "s3_config" {
   tags = local.app_registry_tag
 }
 
-
-
 # ==============================================================================
 # STORAGE FOR DEPLOYMENT ARTIFACTS
 # ==============================================================================

@@ -226,6 +226,8 @@ resource "aws_iam_policy" "ecr_push" {
       }
     ]
   })
+
+  tags = local.app_registry_tag
 }
 
 # ==========================================
@@ -302,6 +304,8 @@ data "aws_iam_policy_document" "codedeploy_assume_role" {
 resource "aws_iam_role" "codedeploy_service_role" {
   name               = "${local.app_name}-codedeploy-service-role"
   assume_role_policy = data.aws_iam_policy_document.codedeploy_assume_role.json
+
+  tags = local.app_registry_tag
 }
 
 resource "aws_iam_role_policy_attachment" "codedeploy_role_attachment" {
