@@ -24,3 +24,8 @@ rule "aws_iam_policy_document_gov_friendly_arns" {
 rule "aws_iam_role_deprecated_policy_attributes" {
   enabled = true
 }
+
+rule "aws_resource_missing_tags" {
+  enabled = true
+  tags = ["awsApplication"]
+}
