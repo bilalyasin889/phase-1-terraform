@@ -1,68 +1,60 @@
-data "aws_iam_policy_document" "codedeploy_assume_role" {
-  statement {
-    effect = "Allow"
+# ==============================================================================
+# CODEDEPLOY CONFIGURATION
+# ==============================================================================
 
-    principals {
-      type        = "Service"
-      identifiers = ["codedeploy.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRole"]
-  }
-}
-
-resource "aws_iam_role" "codedeploy_service_role" {
-  name               = "${local.app_name}-codedeploy-service-role"
-  assume_role_policy = data.aws_iam_policy_document.codedeploy_assume_role.json
-
-  tags = local.app_registry_tag
-}
-
-resource "aws_iam_role_policy_attachment" "codedeploy_role_attachment" {
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
-  role       = aws_iam_role.codedeploy_service_role.name
-}
-
+# Primary CodeDeploy application container for the environment
 resource "aws_codedeploy_app" "this" {
   name = "${local.app_name}-${local.environment}"
 
   tags = local.app_registry_tag
 }
 
+# Deployment group defining how code is pushed to the Auto Scaling Group
 resource "aws_codedeploy_deployment_group" "this" {
   app_name              = aws_codedeploy_app.this.name
   deployment_group_name = "${local.environment}-main-group"
   service_role_arn      = aws_iam_role.codedeploy_service_role.arn
 
+  # Link to the compute layer
   autoscaling_groups = [module.asg.autoscaling_group_name]
 
+  # Safety: Revert to previous version if deployment fails
   auto_rollback_configuration {
     enabled = true
     events  = ["DEPLOYMENT_FAILURE"]
   }
 
+  # Strategy: Update instances in-place while managing ALB traffic
   deployment_style {
     deployment_option = "WITH_TRAFFIC_CONTROL"
     deployment_type   = "IN_PLACE"
   }
 
+  # Target group for connection draining and health checks
   load_balancer_info {
     target_group_info {
       name = module.alb.target_groups["app-tg"].name
     }
   }
 
+  # Rollout speed: One instance at a time
   deployment_config_name = "CodeDeployDefault.OneAtATime"
 
   tags = local.app_registry_tag
 }
 
+# ==============================================================================
+# STORAGE FOR DEPLOYMENT ARTIFACTS
+# ==============================================================================
+
+# Secure bucket to hold revision zips and migration scripts
 module "artifact_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
   version = "~> 5.10.0"
 
   bucket = "${local.app_name}-${local.environment}-artifacts"
 
+  # Enable versioning to allow rollbacks and audit history
   versioning = {
     enabled = true
   }
@@ -70,72 +62,7 @@ module "artifact_bucket" {
   tags = local.app_registry_tag
 }
 
-module "github_oidc_provider" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-provider"
-  version = "~> 5.0"
-
-  tags = local.app_registry_tag
-}
-
-module "github_oidc_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
-  version = "~> 5.0"
-
-  name = "github-actions-deploy-role"
-
-  subjects = [
-    "bilalyasin889/data-service:*",
-    "bilalyasin889/storage-service:*",
-    "bilalyasin889/nginx-config:*"
-  ]
-
-  policies = {
-    CodeDeployAccess = aws_iam_policy.github_deploy_policy.arn
-  }
-
-  tags = local.app_registry_tag
-}
-
-resource "aws_iam_policy" "github_deploy_policy" {
-  name        = "GitHubActionsDeployPolicy"
-  description = "Allows GH Actions to upload to S3 and trigger CodeDeploy"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:PutObject",
-          "s3:GetBucketLocation",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          "${module.artifact_bucket.s3_bucket_arn}/*",
-          module.artifact_bucket.s3_bucket_arn
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "codedeploy:CreateDeployment",
-          "codedeploy:GetDeployment",
-          "codedeploy:GetDeploymentConfig",
-          "codedeploy:RegisterApplicationRevision",
-          "codedeploy:GetApplicationRevision"
-        ]
-        Resource = ["*"]
-      }
-    ]
-  })
-
-  tags = local.app_registry_tag
-}
-
+# Export the bucket ID for use in CI/CD pipelines
 output "artifact_bucket_name" {
   value = module.artifact_bucket.s3_bucket_id
-}
-
-output "role_arn" {
-  value = module.github_oidc_role.arn
 }

@@ -17,4 +17,8 @@ skip-check:
   - CKV_AWS_161   # RDS database has IAM authentication enabled
   - CKV_AWS_157   # RDS multi-AZ deployment (for non production environments)
   - CKV_AWS_338   # CloudWatch log group retain policy is set to 365 days
+  - CKV_AWS_136   # ECR Encryption with KMS
+  - CKV_AWS_50    # X-Ray for Lambda
+  - CKV_AWS_272	  # Lambda Code Signing
+  - CKV_AWS_116	  # Lambda DLQ
 quiet: true

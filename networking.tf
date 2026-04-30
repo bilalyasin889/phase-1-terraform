@@ -209,6 +209,20 @@ module "app_sg" {
   tags = local.app_registry_tag
 }
 
+module "lambda_migration_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.3.1"
+
+  name        = "${local.app_name}-migration-sg"
+  description = "Migration Lambda: Outbound access for DB scripts and SSM"
+  vpc_id      = module.vpc.vpc_id
+
+  # Lambda needs to reach out to SSM, S3 (HTTPS), and RDS (MySQL)
+  egress_rules = ["all-all"]
+
+  tags = local.app_registry_tag
+}
+
 module "db_sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "~> 5.3.1"
@@ -222,9 +236,14 @@ module "db_sg" {
       rule                     = "mysql-tcp"
       source_security_group_id = module.app_sg.security_group_id
       description              = "Allow traffic from App SG to RDS"
+    },
+    {
+      rule                     = "mysql-tcp"
+      source_security_group_id = module.lambda_migration_sg.security_group_id
+      description              = "Allow traffic from Migration Lambda to RDS"
     }
   ]
-  number_of_computed_ingress_with_source_security_group_id = 1
+  number_of_computed_ingress_with_source_security_group_id = 2
 
   tags = local.app_registry_tag
 }
@@ -239,8 +258,9 @@ module "endpoints" {
 
   endpoints = {
     s3 = {
-      service = "s3"
-      tags    = { Name = "s3-vpc-endpoint" }
+      service      = "s3"
+      service_type = "Gateway"
+      tags         = { Name = "s3-vpc-endpoint" }
     }
   }
 
