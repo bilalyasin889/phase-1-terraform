@@ -139,5 +139,10 @@ module "lambda_migration_engine" {
     aws_iam_policy.s3_artifact_read.arn
   ]
 
+  logging_log_group                  = module.app_log_group.cloudwatch_log_group_name
+  logging_log_format                 = "JSON"
+  attach_cloudwatch_logs_policy      = false
+  attach_create_log_group_permission = false
+
   tags = local.app_registry_tag
 }
