@@ -133,10 +133,11 @@ module "lambda_migration_engine" {
   }
 
   attach_policies    = true
-  number_of_policies = 2
+  number_of_policies = 3
   policies = [
     aws_iam_policy.ssm_db_config_read.arn,
-    aws_iam_policy.s3_artifact_read.arn
+    aws_iam_policy.s3_artifact_read.arn,
+    aws_iam_policy.lambda_logging.arn
   ]
 
   logging_log_group                  = module.app_log_group.cloudwatch_log_group_name

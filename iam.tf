@@ -106,6 +106,29 @@ resource "aws_iam_policy" "ssm_s3_config_read" {
 }
 
 # ==========================================
+# LAMBDA POLICIES
+# ==========================================
+resource "aws_iam_policy" "lambda_logging" {
+  name        = "${local.app_name}-lambda-logging-scoped"
+  description = "Allows Lambda to write logs strictly to the shared app log group"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Effect   = "Allow"
+        # Narrowing the scope to exactly one log group to pass Checkov CKV_AWS_355
+        Resource = "${module.app_log_group.cloudwatch_log_group_arn}:*"
+      }
+    ]
+  })
+}
+
+# ==========================================
 # COMPUTATION & ORCHESTRATION POLICIES
 # ==========================================
 
