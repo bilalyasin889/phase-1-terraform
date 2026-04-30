@@ -42,27 +42,3 @@ resource "aws_codedeploy_deployment_group" "this" {
 
   tags = local.app_registry_tag
 }
-
-# ==============================================================================
-# STORAGE FOR DEPLOYMENT ARTIFACTS
-# ==============================================================================
-
-# Secure bucket to hold revision zips and migration scripts
-module "artifact_bucket" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 5.10.0"
-
-  bucket = "${local.app_name}-${local.environment}-artifacts"
-
-  # Enable versioning to allow rollbacks and audit history
-  versioning = {
-    enabled = true
-  }
-
-  tags = local.app_registry_tag
-}
-
-# Export the bucket ID for use in CI/CD pipelines
-output "artifact_bucket_name" {
-  value = module.artifact_bucket.s3_bucket_id
-}
