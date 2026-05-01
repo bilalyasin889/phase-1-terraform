@@ -115,8 +115,8 @@ module "vpc" {
 
   create_igw = true
 
-  enable_nat_gateway     = true
-  one_nat_gateway_per_az = true
+  enable_nat_gateway = true
+  single_nat_gateway = true
 
   azs = data.aws_availability_zones.azs.names
 
