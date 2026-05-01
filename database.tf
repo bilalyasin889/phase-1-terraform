@@ -22,7 +22,7 @@ module "db" {
   # Compute and storage
   instance_class        = "db.t4g.micro"
   allocated_storage     = 20
-  max_allocated_storage = 100
+  max_allocated_storage = 20
   storage_type          = "gp3"
   storage_encrypted     = true
 
