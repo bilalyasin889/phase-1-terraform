@@ -9,6 +9,11 @@ terraform {
       source  = "hashicorp/random"
       version = "3.8.1"
     }
+
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
+    }
   }
 
   required_version = "~> 1.14.0"
@@ -26,4 +31,8 @@ provider "aws" {
   default_tags {
     tags = local.default_tags
   }
+}
+
+provider "github" {
+  owner = local.github_owner
 }

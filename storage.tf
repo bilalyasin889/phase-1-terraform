@@ -71,8 +71,3 @@ module "artifact_bucket" {
 
   tags = local.app_registry_tag
 }
-
-# Export the bucket ID for use in CI/CD pipelines
-output "artifact_bucket_name" {
-  value = module.artifact_bucket.s3_bucket_id
-}

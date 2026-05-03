@@ -10,8 +10,8 @@ resource "aws_iam_policy" "s3_artifact_read" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = ["s3:GetObject", "s3:ListBucket"]
+      Effect = "Allow"
+      Action = ["s3:GetObject", "s3:ListBucket"]
       Resource = [
         module.artifact_bucket.s3_bucket_arn,
         "${module.artifact_bucket.s3_bucket_arn}/*"
@@ -126,7 +126,7 @@ resource "aws_iam_policy" "lambda_logging" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
-        Effect   = "Allow"
+        Effect = "Allow"
         # Narrowing the scope to exactly one log group to pass Checkov CKV_AWS_355
         Resource = "${module.app_log_group.cloudwatch_log_group_arn}:*"
       }
@@ -311,19 +311,4 @@ resource "aws_iam_role" "codedeploy_service_role" {
 resource "aws_iam_role_policy_attachment" "codedeploy_role_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
   role       = aws_iam_role.codedeploy_service_role.name
-}
-
-output "role_arn_apps" {
-  description = "Role for Data, Storage, and Nginx repos"
-  value       = module.gh_role_apps.arn
-}
-
-output "role_arn_engine" {
-  description = "Role for Migration Engine (ECR/Lambda image updates)"
-  value       = module.gh_role_engine.arn
-}
-
-output "role_arn_db_config" {
-  description = "Role for DB Config (S3 uploads/Lambda triggers)"
-  value       = module.gh_role_db_config.arn
 }

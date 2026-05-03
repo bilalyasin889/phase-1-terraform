@@ -7,6 +7,9 @@ locals {
   }
 
   environment = "dev"
+  region      = "eu-west-2"
+
+  github_owner = "bilalyasin889"
 
   app_name = "phase-1"
 
